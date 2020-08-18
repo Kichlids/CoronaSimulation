@@ -8,7 +8,7 @@ public class Room : MonoBehaviour
     public GameObject seatParent;
     public List<Transform> seats;
 
-    public bool[] seatsStatus;
+    public bool[] seatsStatus;  // True if taken, false if empty
     public bool isOccupied;
     public bool covidInfected;
 
@@ -27,7 +27,30 @@ public class Room : MonoBehaviour
         numSeats = seats.Count;
         seatsStatus = new bool[numSeats];
 
-        isOccupied = false;
+        //isOccupied = false;
         covidInfected = false;
+    }
+
+
+
+    public bool ClaimSeat(int index) {
+        print("there");
+        if (seatsStatus[index]==true) {
+            return false;
+        }
+        else {
+            seatsStatus[index] = true;
+
+            isOccupied = IsFull();
+            return true;
+        }
+    }
+
+    public bool IsFull() {
+        for (int i = 0; i < seatsStatus.Length; i++) {
+            if (!seatsStatus[i])
+                return false;
+        }
+        return true;
     }
 }
