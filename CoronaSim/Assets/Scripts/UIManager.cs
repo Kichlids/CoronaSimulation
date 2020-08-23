@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
@@ -261,5 +262,18 @@ public class UIManager : MonoBehaviour
 
         inGameSettingsPnl.SetActive(!state);
         covidStatsPnl.SetActive(state);
+    }
+
+    public void OnDetailsBtn() {
+        Application.OpenURL("https://github.com/Kichlids/CoronaSimulation/blob/master/README.md");
+    }
+
+    public void OnRestartBtn() {
+        int scene = SceneManager.GetActiveScene().buildIndex;
+        SceneManager.LoadScene(scene, LoadSceneMode.Single);
+    }
+
+    public void OnQuitBtn() {
+        Application.Quit();
     }
 }
