@@ -9,10 +9,10 @@ This is a simulation developed on Unity Engine designed to show the spread of Co
 * **Mask Usage** Chance of an individual wearing masks.
 * **Mask Effectiveness** Reduction of chance to infect when wearing masks.
 * **Infection Rate** Chance of transmitting coronavirus. 
-* **Symptomatic Infection Rate** Chance of patient showing symptoms after contracting Coronavirus.
-* **Asymptomatic Infection Rate** Chance of patient not showing symptoms after contracting Coronavirus.
+* **Symptomatic Infection Rate** Chance of an individual showing symptoms after contracting Coronavirus.
+* **Asymptomatic Infection Rate** Chance of an individual not showing symptoms after contracting Coronavirus.
 * **Symptomatic Infection Fatality Rate** Chance of symptomatic infection eventually leading to death.
-* **Asymptomatic Recovery Duration** Duration of time asymptomatic patients need to "self-cure."
+* **Asymptomatic Recovery Duration** Duration of time asymptomatic individuals need to "self-cure."
 
 ## Assumptions
 
@@ -36,3 +36,15 @@ Each action other than claiming an office is as equally likely to be taken as ot
 #### General Assumptions
 
 * Individuals does not need to use the restroom or exit the building. Individuals may only take actions specified above.
+* Infected individuals are either symptomatic or asymptomatic.
+* Asymptomatic individuals automatically recover after some duration of time.
+
+#### Likely Scenario
+
+Below are the simulation's recommended settings. See Source below.
+
+* Wearing mask reduces infection rate by 65%.
+* The infection rate is 50%.
+* There is 60% chance to show symptoms after becoming infected.
+* There is 40% chance to not show symptoms after becoming infected.
+* There is 1.3% symptomatic infection fatality rate.
