@@ -60,3 +60,5 @@ The sources listed below contributed construction of the assumptions to make the
 * https://www.cdc.gov/coronavirus/2019-ncov/hcp/planning-scenarios.html#table-2=
 * https://www.ucdavis.edu/coronavirus/news/your-mask-cuts-own-risk-65-percent/
 * https://www.healthaffairs.org/doi/full/10.1377/hlthaff.2020.00455
+
+* Building layout inspired by University of Oklahoma's Engineering Lab 2nd Floor.
