@@ -8,7 +8,7 @@ public class Covid : MonoBehaviour
 {
     private SimManager sim;
 
-    public float InfectionCd = 2f;
+    public float InfectionCd = 2f;  // See personInteractionDuration in SimManager
     public float infectionTimer = 0;
 
     public float asymptomaticRecoveryTimer = 0;
@@ -21,6 +21,8 @@ public class Covid : MonoBehaviour
         sim = SimManager._sim;
 
         nearbyPeople = new List<GameObject>();
+
+        InfectionCd = sim.personInteractionDuration;
     }
 
     public void Init(InfectionStatus _status) {
@@ -28,6 +30,9 @@ public class Covid : MonoBehaviour
     }
 
     private void Update() {
+
+        DisplayInfectionStatus();
+
         // Infected
         if (status != InfectionStatus.NotInfected) {
 
@@ -57,6 +62,7 @@ public class Covid : MonoBehaviour
             if (status == InfectionStatus.Asymptomatic) {
                 if (asymptomaticRecoveryTimer > sim.asymptomaticRecoveryTime * sim.secondsInDay) {
                     status = InfectionStatus.NotInfected;
+                    sim.numRecovered++;
                     Debug.Log("Recovered");
                 }
                 asymptomaticRecoveryTimer += Time.deltaTime;
@@ -68,7 +74,6 @@ public class Covid : MonoBehaviour
         else {
             infectionTimer = 0;
             asymptomaticRecoveryTimer = 0;
-
         }
     }
 
@@ -80,7 +85,17 @@ public class Covid : MonoBehaviour
         else {
             subject.GetComponent<Covid>().status = InfectionStatus.Asymptomatic;
         }
+    }
 
-        print("Infected");
+    private void DisplayInfectionStatus() {
+        if (status == InfectionStatus.NotInfected) {
+            gameObject.GetComponent<Renderer>().material.color = sim.nonInfected;
+        }
+        else if (status == InfectionStatus.Asymptomatic) {
+            gameObject.GetComponent<Renderer>().material.color = sim.asympatomatic;
+        }
+        else {
+            gameObject.GetComponent<Renderer>().material.color = sim.symptomatic;
+        }
     }
 }

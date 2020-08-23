@@ -108,8 +108,8 @@ NavMeshAgent:
   m_GameObject: {fileID: 658429157544923018}
   m_Enabled: 0
   m_AgentTypeID: -334000983
-  m_Radius: 2.1
-  m_Speed: 10
+  m_Radius: 0.5
+  m_Speed: 5
   m_Acceleration: 20
   avoidancePriority: 50
   m_AngularSpeed: 30
@@ -133,9 +133,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 554a5b77b49b47549a837a6a485bb751, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  myOffice: {fileID: 0}
   isUsingMask: 0
   isSocialDistancing: 0
+  canSetRoute: 1
+  notInOffice: 0
+  myOffice: {fileID: 0}
+  timeUntilAction: -1
+  timer: 0
 --- !u!114 &1277212225143401830
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -148,7 +152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6669199058d9e3146b1a758c3fec4343, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  InfectionCd: 2
+  InfectionCd: 1
   infectionTimer: 0
   asymptomaticRecoveryTimer: 0
   status: 0

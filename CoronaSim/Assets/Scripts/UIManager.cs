@@ -8,6 +8,10 @@ public class UIManager : MonoBehaviour
 {
     private SimManager sim;
 
+    [Header("Simulation Settings")]
+
+    public GameObject settingsPnl;
+    [Space]
     public Slider numPeopleSlr;
     public TextMeshProUGUI numPeopleTxt;
     [Space]
@@ -34,24 +38,56 @@ public class UIManager : MonoBehaviour
     [Space]
     public Slider socialDistancingUsagePercentageSlr;
     public TextMeshProUGUI socialDistancingUsagePercentageTxt;
-    
+    [Space]
+    public Button startBtn;
+
+
+    [Header("In Game Sim Settings Display")]
+    public GameObject simPnl;
+    public GameObject covidStatsPnl;
+    public GameObject inGameSettingsPnl;
+    public TextMeshProUGUI numPeopleDisplayTxt;
+    public TextMeshProUGUI infectionRateDisplayTxt;
+    public TextMeshProUGUI sympInfectionRateDisplayTxt;
+    public TextMeshProUGUI asympInfectionRateDisplayTxt;
+    public TextMeshProUGUI sympIFRDisplayTxt;
+    public TextMeshProUGUI asympRecoveryDisplayTxt;
+    public TextMeshProUGUI socialDistancingDisplayTxt;
+    public TextMeshProUGUI maskUsageDisplayTxt;
+    public TextMeshProUGUI maskEffectivenessDisplayTxt;
+    [Space]
+    public TextMeshProUGUI daysPassedTxt;
+    public TextMeshProUGUI uninfected;
+    public TextMeshProUGUI symptomatic;
+    public TextMeshProUGUI asymptomatic;
+    public TextMeshProUGUI recovered;
+
 
     public Slider dayCompletionMeter;
+    
 
     private void Start() {
         sim = SimManager._sim;
 
-        //SlidersInit();
+        settingsPnl.SetActive(true);
+        inGameSettingsPnl.SetActive(false);
+        covidStatsPnl.SetActive(false);
+        simPnl.SetActive(false);
+
+        SlidersInit();
+
+        OnRealisticBtn();
         
     }
 
     private void Update() {
         UpdateTimeOfDay();
+        UpdateCovidStats();
     }
 
     private void SlidersInit() {
         // Number of people present
-        numPeopleSlr.minValue = 1;
+        numPeopleSlr.minValue = 2;
         numPeopleSlr.maxValue = sim.maxNumPeople;
         numPeopleSlr.wholeNumbers = true;
         numPeopleSlr.value = numPeopleSlr.minValue;
@@ -86,7 +122,7 @@ public class UIManager : MonoBehaviour
         symptomaticIfrTxt.text = symptomaticIfrRateSlr.value.ToString();
 
         // Asymptomatic Patient Recovery Time
-        asymptomaticRecoveryDurationSlr.minValue = 3;
+        asymptomaticRecoveryDurationSlr.minValue = 1;
         asymptomaticRecoveryDurationSlr.maxValue = 12;
         asymptomaticRecoveryDurationSlr.wholeNumbers = true;
         asymptomaticRecoveryDurationSlr.value = asymptomaticRecoveryDurationSlr.minValue;
@@ -117,6 +153,14 @@ public class UIManager : MonoBehaviour
 
     public void UpdateTimeOfDay() {
         dayCompletionMeter.value = sim.inGameTime / sim.secondsInDay;
+    }
+
+    public void UpdateCovidStats() {
+        daysPassedTxt.text = " Days passed: " + sim.inGameDaysPassed;
+        uninfected.text = "# Uninfected: " + sim.numUninfected;
+        symptomatic.text = "# Symptomatic: " + sim.numSymptomatic;
+        asymptomatic.text = "# Asymptomatic: " + sim.numAsymptomatic;
+        recovered.text = "# Recovered: " + sim.numRecovered;
     }
 
     public void OnNumberPeopleChanged() {
@@ -166,5 +210,56 @@ public class UIManager : MonoBehaviour
     public void OnInfectionRateChanged() {
         sim.infectionRate = Mathf.Round(infectionRateSlr.value * 1000) / 1000;
         infectionRateTxt.text = sim.infectionRate.ToString();
+    }
+
+    public void OnStartBtn() {
+
+        sim.numPeople = (int)numPeopleSlr.value;
+        sim.socialDistancingPercentage = socialDistancingUsagePercentageSlr.value;
+        sim.maskPercentage = maskUsagePercentageSlr.value;
+        sim.maskInfectionReductionRate = maskInfectionReductionRateSlr.value;
+        sim.infectionRate = infectionRateSlr.value;
+        sim.symptomaticInfectionRate = symptomaticInfectionRateSlr.value;
+        sim.asymptomaticInfectionRate = asymptomaticInfectionRateSlr.value;
+        sim.symptomaticFatalityRate = symptomaticIfrRateSlr.value;
+        sim.asymptomaticRecoveryTime = (int)asymptomaticRecoveryDurationSlr.value;
+
+        settingsPnl.SetActive(false);
+        simPnl.SetActive(true);
+        DisplaySettings();
+    
+        StartCoroutine(sim.BeginSim());
+    }
+
+    public void OnRealisticBtn() {
+        numPeopleSlr.value = 15;
+        socialDistancingUsagePercentageSlr.value = 0.5f;
+        maskUsagePercentageSlr.value = 0.5f;
+        maskInfectionReductionRateSlr.value = 0.65f;
+        infectionRateSlr.value = 0.5f;
+        symptomaticInfectionRateSlr.value = 0.6f;
+        asymptomaticInfectionRateSlr.value = 0.4f;
+        symptomaticIfrRateSlr.value = 0.013f;
+        asymptomaticRecoveryDurationSlr.value = 3;
+    }
+
+    private void DisplaySettings() {
+        inGameSettingsPnl.SetActive(true);
+        numPeopleDisplayTxt.text = "Number of people: " + sim.numPeople.ToString();
+        infectionRateDisplayTxt.text = "Infection Rate: " + sim.infectionRate.ToString();
+        sympInfectionRateDisplayTxt.text = "Symptomatic Infection Rate " + sim.symptomaticInfectionRate.ToString();
+        asympInfectionRateDisplayTxt.text = "Asymptomatic Infection Rate " + sim.asymptomaticInfectionRate.ToString();
+        sympIFRDisplayTxt.text = "Symptomatic IFR " + sim.symptomaticFatalityRate.ToString();
+        asympRecoveryDisplayTxt.text = "Asymptomatic Recovery(days): " + sim.asymptomaticRecoveryTime.ToString();
+        socialDistancingDisplayTxt.text = "Social Distancing: " + sim.socialDistancingPercentage.ToString();
+        maskUsageDisplayTxt.text = "Mask Usage: " + sim.maskPercentage.ToString();
+        maskEffectivenessDisplayTxt.text = "Mask Effectiveness: " + sim.maskInfectionReductionRate.ToString();
+    }
+
+    public void OnSwitchInGamePanels() {
+        bool state = inGameSettingsPnl.activeSelf;
+
+        inGameSettingsPnl.SetActive(!state);
+        covidStatsPnl.SetActive(state);
     }
 }

@@ -34,7 +34,6 @@ public class Room : MonoBehaviour
 
 
     public bool ClaimSeat(int index) {
-        print("there");
         if (seatsStatus[index]==true) {
             return false;
         }

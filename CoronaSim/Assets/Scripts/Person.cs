@@ -8,17 +8,27 @@ public class Person : MonoBehaviour {
     private SimManager sim;
     private NavMeshAgent agent;
 
-    public Office myOffice;
-
     public bool isUsingMask;
     public bool isSocialDistancing;
 
-
-    public bool away;
-    public Vector3 targetPos;
     public bool canSetRoute = true;
-    private float diff = 1.1f;
-    private const float maxTimeUntilAction = 30f;
+
+    // Office
+    public bool notInOffice;
+    public Office myOffice;
+
+    // Keep track of discussion room and seating this occupied
+    public  bool inDiscussionRoom;
+    private DiscussionRoom myDiscussionRoom;
+    private int drSeatIndex;
+
+    // Person gameobject being visited
+    public GameObject personVisiting;
+    public bool visingPerson;
+
+    private const float maxTimeUntilAction = 15f;
+    private float distDelta = 1.1f;
+    private Vector3 targetPos;
     public float timeUntilAction = -1f;
     public float timer = 0f;
 
@@ -27,6 +37,8 @@ public class Person : MonoBehaviour {
         agent = GetComponent<NavMeshAgent>();
         agent.enabled = true;
 
+        sim.people.Add(gameObject);
+
         Init();
 
         ClaimEmptyOffice();
@@ -34,17 +46,17 @@ public class Person : MonoBehaviour {
 
     private void Update() {
 
-        if (Vector3.Distance(transform.position, myOffice.seats[0].position) < diff) {
-            away = false;
+        if (Vector3.Distance(transform.position, myOffice.seats[0].position) < distDelta) {
+            notInOffice = false;
         }
         else {
-            away = true;
+            notInOffice = true;
         }
 
         if (!canSetRoute) {
             // Agent on the way to something
-            //print(Vector3.Distance(transform.position, targetPos));
-            if (Vector3.Distance(transform.position, targetPos) < diff) {
+
+            if (Vector3.Distance(transform.position, targetPos) < distDelta) {
                 // arrived
                 canSetRoute = true;
                 timeUntilAction = Random.Range(10f, maxTimeUntilAction);
@@ -55,75 +67,40 @@ public class Person : MonoBehaviour {
             // Agent plan to move in x time
             if (timer > timeUntilAction) {
 
-                if (away) {
+                // Go back home
+                if (notInOffice) {
+                    if (inDiscussionRoom) {
+                        myDiscussionRoom.seatsStatus[drSeatIndex] = false;
+                    }
                     // Go back home
                     Go(myOffice.seats[0].position);
                 }
+                // Go out
                 else {
-                    GoToDiscussionRoomEmpty();
+                    int rand = Random.Range(0, 2);
+                    if (rand == 0) {
+                        List<GameObject> others = new List<GameObject>();
+                        for (int i = 0; i < sim.people.Count; i++) {
+                            if (sim.people[i].GetInstanceID() != gameObject.GetInstanceID()) {
+                                others.Add(sim.people[i]);
+                            }
+                        }
+                        int rand2 = Random.Range(0, others.Count);
+                        personVisiting = others[rand2];
+
+                        
+                        Go(others[rand2].transform.position);
+                        StartCoroutine(InteractPerson(personVisiting));
+                    }
+                    else {
+                        GoToDiscussionRoomEmpty();
+                    }
                 }
             }
-
-
 
             timer += Time.deltaTime;
         }
     }
-
-    public void GoToDiscussionRoomEmpty() {
-        List<GameObject> disc = sim.discussionRooms;
-
-        Vector3 pos = Vector3.zero;
-
-        int rand = Random.Range(0, disc.Count);
-        print("Disc room: " + rand);
-
-        if (!disc[rand].GetComponent<DiscussionRoom>().IsFull()) {
-            
-            if (isSocialDistancing) {
-                // Use only 0, 2, 4 seats
-
-                for (int i = 0; i < disc[rand].GetComponent<DiscussionRoom>().seats.Count; i += 2) {
-                    DiscussionRoom dr = disc[rand].GetComponent<DiscussionRoom>();
-                    if (!dr.seatsStatus[i]) {
-                        if (dr.ClaimSeat(i)) {
-                            print("index: " + i);
-                            pos = dr.seats[i].position;
-                            break;
-                        }
-                    }
-                }
-            }
-            else {
-                // Use all
-
-                for (int i = 0; i < disc[rand].GetComponent<DiscussionRoom>().seats.Count; i++) {
-                    DiscussionRoom dr = disc[rand].GetComponent<DiscussionRoom>();
-                    if (!dr.seatsStatus[i]) {
-                        if (dr.ClaimSeat(i)) {
-                            print("index: " + i);
-                            pos = dr.seats[i].position;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (pos == Vector3.zero) {
-            // dont
-        }
-        else {
-            Go(pos);
-        }
-    }
-
-    public void Go(Vector3 position) {
-        canSetRoute = false;
-        targetPos = position;
-        agent.SetDestination(position);
-    }
-
 
     public void Init() {
         SetSocialDistancingStance();
@@ -144,12 +121,35 @@ public class Person : MonoBehaviour {
         float perc = Random.Range(0f, 1f);
         if (perc <= sim.socialDistancingPercentage) {
             isSocialDistancing = true;
-            agent.radius = SimLib.ConvertToInGameLength(sim.socialDistanceLength);
+            agent.radius = 0.5f;
         }
         else {
             isSocialDistancing = false;
             agent.radius = 0.5f;
         }
+    }
+
+    public void Go(Vector3 position) {
+        canSetRoute = false;
+        targetPos = position;
+        agent.SetDestination(position);
+    }
+
+    public IEnumerator InteractPerson(GameObject obj) {
+        
+        while (Vector3.Distance(transform.position, obj.transform.position) > distDelta) {
+            yield return null;
+        }
+
+        agent.speed = 0;
+        obj.GetComponent<NavMeshAgent>().speed = 0;
+        visingPerson = true;
+        yield return new WaitForSeconds(sim.personInteractionDuration);
+        visingPerson = false;
+        agent.speed = sim.personSpeed;
+        obj.GetComponent<NavMeshAgent>().speed = sim.personSpeed;
+
+        personVisiting = null;
     }
 
     private void ClaimEmptyOffice() {
@@ -208,10 +208,63 @@ public class Person : MonoBehaviour {
         Go(myOffice.seats[0].position);
     }
 
+    public void GoToDiscussionRoomEmpty() {
+        List<GameObject> disc = sim.discussionRooms;
+
+        Vector3 pos = Vector3.zero;
+
+        int rand = Random.Range(0, disc.Count);
+
+        if (!disc[rand].GetComponent<DiscussionRoom>().IsFull()) {
+
+            if (isSocialDistancing) {
+                // Use only 0, 2, 4 seats
+
+                for (int i = 0; i < disc[rand].GetComponent<DiscussionRoom>().seats.Count; i += 2) {
+                    DiscussionRoom dr = disc[rand].GetComponent<DiscussionRoom>();
+                    if (!dr.seatsStatus[i]) {
+                        if (dr.ClaimSeat(i)) {
+                            pos = dr.seats[i].position;
+
+                            inDiscussionRoom = true;
+                            myDiscussionRoom = dr;
+                            drSeatIndex = i;
+                            break;
+                        }
+                    }
+                }
+            }
+            else {
+                // Use all
+
+                for (int i = 0; i < disc[rand].GetComponent<DiscussionRoom>().seats.Count; i++) {
+                    DiscussionRoom dr = disc[rand].GetComponent<DiscussionRoom>();
+                    if (!dr.seatsStatus[i]) {
+                        if (dr.ClaimSeat(i)) {
+                            pos = dr.seats[i].position;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (pos == Vector3.zero) {
+            // dont
+        }
+        else {
+            Go(pos);
+        }
+    }
+
     public void OnDrawGizmos() {
         Gizmos.color = Color.red;
 
         float rad = SimLib.ConvertToInGameLength(sim.socialDistanceLength);
-        Gizmos.DrawWireSphere(transform.position, rad);
+        Gizmos.DrawWireSphere(transform.position - new Vector3(0, 1, 0), rad);
+    }
+
+    private void OnDestroy() {
+        sim.people.Remove(gameObject);
     }
 }

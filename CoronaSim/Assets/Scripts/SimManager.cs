@@ -9,14 +9,25 @@ using UnityEngine.SocialPlatforms;
 public class SimManager : MonoBehaviour {
     [Header("Environment Variables")]
     public float secondsInDay;
+    public int inGameDaysPassed;
     public float inGameTime;
     public int maxNumPeople;
     public int numPeople;
+    public GameObject personPrefab;
+    public Transform spawnPoint;
     [Space]
     public GameObject officesParent;
     public GameObject discussionRoomParent;
     public List<GameObject> offices;
     public List<GameObject> discussionRooms;
+    public List<GameObject> people;
+    [Space]
+    public Color nonInfected;
+    public Color asympatomatic;
+    public Color symptomatic;
+    [Space]
+    public float personSpeed;
+    public float personInteractionDuration = 2f;
 
     [Header("Covid Variables")]
     [Range(0, 1)]
@@ -38,7 +49,13 @@ public class SimManager : MonoBehaviour {
     public float socialDistancingPercentage;
     public float socialDistanceLength = 3;
 
+    private bool beginSim = false;
 
+    [Header("Stats")]
+    public int numUninfected;
+    public int numSymptomatic;
+    public int numAsymptomatic;
+    public int numRecovered;
 
 
     public static SimManager _sim;
@@ -72,14 +89,15 @@ public class SimManager : MonoBehaviour {
 
     private void Start() {
         inGameTime = 0f;
-
-       
-
+        inGameDaysPassed = 0;
         maxNumPeople = offices.Count;
     }
 
     private void Update() {
-        IncrementGameTime();
+        if (beginSim) {
+            IncrementGameTime();
+            GetInfectionStats();
+        }
     }
 
     private void IncrementGameTime() {
@@ -87,8 +105,41 @@ public class SimManager : MonoBehaviour {
         inGameTime += Time.deltaTime;
 
         if (inGameTime > secondsInDay) {
-            inGameTime = secondsInDay;
+            inGameDaysPassed++;
+            inGameTime = 0;
             Debug.Log("Day complete");
+        }
+    }
+
+    private void GetInfectionStats() {
+        int non = 0, symp = 0, asymp = 0;
+
+        foreach(GameObject person in people) {
+            Covid covid = person.GetComponent<Covid>();
+            if (covid.status == InfectionStatus.NotInfected) {
+                non++;
+            }
+            else if (covid.status == InfectionStatus.Symptomatic) {
+                symp++;
+            }
+            else {
+                asymp++;
+            }
+        }
+
+        numUninfected = non;
+        numSymptomatic = symp;
+        numAsymptomatic = asymp;
+    }
+    public IEnumerator BeginSim() {
+        beginSim = true;
+        for (int i = 0; i < numPeople; i++) {
+            GameObject inst = Instantiate(personPrefab, spawnPoint.position, spawnPoint.rotation) as GameObject;
+            inst.transform.parent = spawnPoint;
+            if (i == 0) {
+                inst.GetComponent<Covid>().status = InfectionStatus.Symptomatic;
+            }
+            yield return new WaitForSeconds(1f);
         }
     }
 }
