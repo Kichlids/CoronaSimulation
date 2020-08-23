@@ -2,6 +2,14 @@
 
 This is a simulation developed on Unity Engine designed to show the spread of Coronavirus and highlight the importance of social distancing and mask usage. 
 
+## Build Instructions
+
+Windows:
+
+1. Download BuildProject/Build.zip
+2. Unzip Build.zip
+3. Run Build/CoronaSim.exe
+
 ## Parameters Explained
 
 * **Number of People** The number of people to be spawned at the beginning. Min 2, max 25. 
