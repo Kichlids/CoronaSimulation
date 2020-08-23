@@ -38,6 +38,9 @@ Each action other than claiming an office is as equally likely to be taken as ot
 * Individuals does not need to use the restroom or exit the building. Individuals may only take actions specified above.
 * Infected individuals are either symptomatic or asymptomatic.
 * Asymptomatic individuals automatically recover after some duration of time.
+* Individuals practicing social distancing will first occupy even numbered office first, then the odd numbered office. They will also occupy even numbered seats in meeting rooms first in the same way. 
+* Individuals wearing masks will always have them on. 
+* Individuals does not contract coronavirus from surface areas. 
 
 #### Likely Scenario
 
@@ -48,3 +51,12 @@ Below are the simulation's recommended settings. See Source below.
 * There is 60% chance to show symptoms after becoming infected.
 * There is 40% chance to not show symptoms after becoming infected.
 * There is 1.3% symptomatic infection fatality rate.
+
+
+## Sources
+
+The sources listed below contributed construction of the assumptions to make the simulation as realistic as possible.
+
+* https://www.cdc.gov/coronavirus/2019-ncov/hcp/planning-scenarios.html#table-2=
+* https://www.ucdavis.edu/coronavirus/news/your-mask-cuts-own-risk-65-percent/
+* https://www.healthaffairs.org/doi/full/10.1377/hlthaff.2020.00455
