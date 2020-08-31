@@ -6,7 +6,7 @@ This is a simulation developed on Unity Engine designed to show the spread of Co
 
 Windows:
 
-1. Download BuildProject/Build.zip
+1. Download CoronaSimulation/CoronaSim/BuildProject/Build.zip
 2. Unzip Build.zip
 3. Run Build/CoronaSim.exe
 
